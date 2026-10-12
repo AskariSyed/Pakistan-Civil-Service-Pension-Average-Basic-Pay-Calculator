@@ -164,18 +164,6 @@ export default function PrintStatement({ result, bps, lastBasicPay, personalPay,
       <div className="print-disclaimer-box">
         <strong>⚠️ DISCLAIMER:</strong> This statement has been generated for personal estimation and planning purposes only. It is not an official government calculator or a formal pension sanction. Official pension orders and final entitlements are issued solely by the competent pension sanctioning authorities, Accountant General Pakistan Revenues (AGPR), or respective Provincial Accountant General Offices.
       </div>
-
-      {/* Signatures for Record */}
-      <div className="print-signature-row">
-        <div className="sig-box">
-          <div className="sig-line"></div>
-          <span>Employee Signature</span>
-        </div>
-        <div className="sig-box">
-          <div className="sig-line"></div>
-          <span>Verified By (Personal Record)</span>
-        </div>
-      </div>
     </div>
   );
 }

@@ -1,7 +1,15 @@
 import React from 'react';
-import { Calculator, Moon, Sun, Table, Printer, Sparkles, BookOpen } from 'lucide-react';
+import { Calculator, Moon, Sun, Table, Printer, Sparkles, BookOpen, ShieldAlert } from 'lucide-react';
 
-export default function Header({ theme, toggleTheme, onOpenPayScaleModal, onPrint, onToggleRules, showRules }) {
+export default function Header({
+  theme,
+  toggleTheme,
+  onOpenPayScaleModal,
+  onPrint,
+  onToggleRules,
+  showRules,
+  onOpenDisclaimer
+}) {
   return (
     <header className="app-header">
       <div className="brand-section">
@@ -46,6 +54,16 @@ export default function Header({ theme, toggleTheme, onOpenPayScaleModal, onPrin
         >
           <Printer size={16} />
           <span>Print / PDF</span>
+        </button>
+
+        <button
+          className="btn btn-secondary"
+          onClick={onOpenDisclaimer}
+          title="Legal Disclaimer & Limitation of Liability"
+          style={{ borderColor: 'rgba(245, 158, 11, 0.4)', color: 'var(--amber-500)' }}
+        >
+          <ShieldAlert size={16} color="#f59e0b" />
+          <span>Legal Disclaimer</span>
         </button>
 
         <button

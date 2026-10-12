@@ -60,23 +60,45 @@ This application allows government employees across **BPS-01 to BPS-22** to ente
 
 ### 1. 24-Month Average Basic Pay Formula
 For an employee retiring on date $C_5$, the calculator evaluates the 24 months preceding and including the retirement month:
-$$F_k = \text{DATE}(\text{YEAR}(C_5), \text{MONTH}(C_5) - 24 + k, 1) \quad \text{for } k \in [1, 24]$$
+
+$$
+F_k = \text{DATE}(\text{YEAR}(C_5), \text{MONTH}(C_5) - 24 + k, 1) \quad \text{for } k \in [1, 24]
+$$
 
 The Average Basic Pay ($ABP$) is calculated as:
-$$ABP = \text{ROUND}\left(\frac{\sum_{k=1}^{24} \text{Total Pay}_k}{24}, 0\right)$$
+
+$$
+ABP = \text{ROUND}\left(\frac{\sum_{k=1}^{24} \text{Total Pay}_k}{24}, 0\right)
+$$
 
 ### 2. Annual Increment Rule (1st December)
 In the Pakistan civil service, regular annual increments are drawn on the **1st of December**. The formula dynamically adjusts the increment stage for any month $F_k$ relative to the retirement date $C_5$:
-$$\text{Inc\_Diff} = (\text{YEAR}(C_5) - \text{YEAR}(F_k)) + [1 \text{ if } \text{MONTH}(C_5) = 12 \text{ else } 0] - [1 \text{ if } \text{MONTH}(F_k) = 12 \text{ else } 0]$$
-$$\text{Stages}_k = \text{Total Stages at Retirement} - \text{Inc\_Diff}$$
+
+$$
+\text{IncDiff} = (\text{YEAR}(C_5) - \text{YEAR}(F_k)) + [1 \text{ if } \text{MONTH}(C_5) = 12 \text{ else } 0] - [1 \text{ if } \text{MONTH}(F_k) = 12 \text{ else } 0]
+$$
+
+$$
+\text{Stages}_k = \text{Total Stages at Retirement} - \text{IncDiff}
+$$
 
 ### 3. Pay Scale Transition (2022 vs 2026)
 - Months **before 1st July 2026** use the **2022 Pay Scale**.
 - Months **on or after 1st July 2026** use the **2026 Revised Pay Scale**.
-- For each month $k$, the total emolument is:
-  $$\text{Total Pay}_k = \text{Initial}_k + (\text{Stages}_k \times \text{Increment}_k)$$
-  $$\text{Basic Pay}_k = \min(\text{Total Pay}_k, \text{Maximum}_k)$$
-  $$\text{Personal Pay}_k = \max(\text{Total Pay}_k - \text{Basic Pay}_k, 0)$$
+
+For each month $k$, the total emolument is calculated as:
+
+$$
+\text{Total Pay}_k = \text{Initial}_k + (\text{Stages}_k \times \text{Increment}_k)
+$$
+
+$$
+\text{Basic Pay}_k = \min(\text{Total Pay}_k, \text{Maximum}_k)
+$$
+
+$$
+\text{Personal Pay}_k = \max(\text{Total Pay}_k - \text{Basic Pay}_k, 0)
+$$
 
 ### 4. Personal Pay (PP) at Ceiling
 - Personal Pay is admissible only when the employee has reached the ceiling/maximum of the pay scale ($\text{Stage} = \text{Max Stages}$).
@@ -84,17 +106,30 @@ $$\text{Stages}_k = \text{Total Stages at Retirement} - \text{Inc\_Diff}$$
 - The formula converts Personal Pay into equivalent stages and applies it proportionally across past pay scales.
 
 ### 5. Full Pension & Commutation Benefit Estimation
-- **Gross Pension**:
-  $$\text{Gross Pension} = \frac{ABP \times \text{Service Years (Max 30)} \times 7}{300}$$
-- **Commutation (35%)**:
-  $$\text{Commutation Portion} = \text{Gross Pension} \times 0.35$$
-- **Lump Sum Gratuity**:
-  $$\text{Commutation Lump Sum} = \text{Commutation Portion} \times 12 \times \text{Factor}(\text{Age Next Birthday})$$
-- **Net Monthly Pension**:
-  $$\text{Net Pension} = \text{Gross Pension} \times 0.65$$
-- **Medical Allowance**:
-  - $25\%$ of Net Pension for BPS 1–15
-  - $20\%$ of Net Pension for BPS 16–22
+
+**Gross Pension**:
+$$
+\text{Gross Pension} = \frac{ABP \times \text{Service Years (Max 30)} \times 7}{300}
+$$
+
+**Commutation (35%)**:
+$$
+\text{Commutation Portion} = \text{Gross Pension} \times 0.35
+$$
+
+**Lump Sum Gratuity**:
+$$
+\text{Commutation Lump Sum} = \text{Commutation Portion} \times 12 \times \text{Factor}(\text{Age Next Birthday})
+$$
+
+**Net Monthly Pension**:
+$$
+\text{Net Pension} = \text{Gross Pension} \times 0.65
+$$
+
+**Medical Allowance**:
+- $25\%$ of Net Pension for BPS 1–15
+- $20\%$ of Net Pension for BPS 16–22
 
 ---
 

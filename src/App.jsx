@@ -9,6 +9,8 @@ import RulesExplainer from './components/RulesExplainer.jsx';
 import Footer from './components/Footer.jsx';
 import PrintStatement from './components/PrintStatement.jsx';
 import AdBanner from './components/AdBanner.jsx';
+import DisclaimerBanner from './components/DisclaimerBanner.jsx';
+import DisclaimerModal from './components/DisclaimerModal.jsx';
 import { calculateAverageBasicPay } from './utils/calculator.js';
 import { Table, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
@@ -28,12 +30,32 @@ export default function App() {
   // UI States
   const [activeTab, setActiveTab] = useState('breakdown'); // 'breakdown' | 'pension'
   const [isPayScaleModalOpen, setIsPayScaleModalOpen] = useState(false);
+  const [isDisclaimerModalOpen, setIsDisclaimerModalOpen] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
   // Apply theme to document
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
+  // Check if first-time user has accepted disclaimer
+  useEffect(() => {
+    try {
+      const accepted = localStorage.getItem('pension_disclaimer_accepted');
+      if (accepted !== 'true') {
+        setIsDisclaimerModalOpen(true);
+      }
+    } catch (e) {
+      // LocalStorage not available or blocked
+    }
+  }, []);
+
+  const handleAcceptDisclaimer = () => {
+    try {
+      localStorage.setItem('pension_disclaimer_accepted', 'true');
+    } catch (e) {}
+    setIsDisclaimerModalOpen(false);
+  };
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
@@ -60,6 +82,9 @@ export default function App() {
     <div className="app-container">
       {/* Screen Interactive UI */}
       <div className="screen-only-content">
+        {/* Running Legal Disclaimer Ticker Banner */}
+        <DisclaimerBanner onOpenFullDisclaimer={() => setIsDisclaimerModalOpen(true)} />
+
         {/* Top Header */}
         <Header
           theme={theme}
@@ -68,6 +93,7 @@ export default function App() {
           onPrint={handlePrint}
           onToggleRules={() => setShowRules((prev) => !prev)}
           showRules={showRules}
+          onOpenDisclaimer={() => setIsDisclaimerModalOpen(true)}
         />
 
         {/* Notice Banner from Excel Sheet Note */}
@@ -172,7 +198,7 @@ export default function App() {
         <AdBanner />
 
         {/* Footer with personal use disclaimer */}
-        <Footer />
+        <Footer onOpenDisclaimer={() => setIsDisclaimerModalOpen(true)} />
       </div>
 
       {/* Print Statement Document (visible only when printing or generating PDF) */}
@@ -188,6 +214,13 @@ export default function App() {
       <PayScaleModal
         isOpen={isPayScaleModalOpen}
         onClose={() => setIsPayScaleModalOpen(false)}
+      />
+
+      {/* Legal Disclaimer Modal */}
+      <DisclaimerModal
+        isOpen={isDisclaimerModalOpen}
+        onClose={() => setIsDisclaimerModalOpen(false)}
+        onAccept={handleAcceptDisclaimer}
       />
 
       {/* Vercel Analytics & Speed Insights */}
