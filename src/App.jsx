@@ -8,6 +8,7 @@ import PayScaleModal from './components/PayScaleModal.jsx';
 import RulesExplainer from './components/RulesExplainer.jsx';
 import Footer from './components/Footer.jsx';
 import PrintStatement from './components/PrintStatement.jsx';
+import AdBanner from './components/AdBanner.jsx';
 import { calculateAverageBasicPay } from './utils/calculator.js';
 import { Table, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
@@ -166,6 +167,9 @@ export default function App() {
             {showRules && <RulesExplainer />}
           </section>
         </div>
+
+        {/* AdSense Display Ad Unit */}
+        <AdBanner />
 
         {/* Footer with personal use disclaimer */}
         <Footer />
