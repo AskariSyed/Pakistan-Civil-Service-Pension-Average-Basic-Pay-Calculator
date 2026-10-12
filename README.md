@@ -51,6 +51,8 @@ This application allows government employees across **BPS-01 to BPS-22** to ente
 - **Print & PDF Optimization**:
   - Clean A4 print layout preventing row cuts across pages (`page-break-inside: avoid`).
   - Dedicated print statement including employee particulars, complete 24-month schedule, pension breakdown, signatures, and disclaimer.
+- **Vercel Analytics & Speed Insights**:
+  - Integrated `@vercel/analytics` and `@vercel/speed-insights` for real-time traffic analytics and Core Web Vitals performance monitoring.
 
 ---
 

@@ -10,6 +10,8 @@ import Footer from './components/Footer.jsx';
 import PrintStatement from './components/PrintStatement.jsx';
 import { calculateAverageBasicPay } from './utils/calculator.js';
 import { Table, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 export default function App() {
   // Theme state
@@ -183,6 +185,10 @@ export default function App() {
         isOpen={isPayScaleModalOpen}
         onClose={() => setIsPayScaleModalOpen(false)}
       />
+
+      {/* Vercel Analytics & Speed Insights */}
+      <Analytics />
+      <SpeedInsights />
     </div>
   );
 }
