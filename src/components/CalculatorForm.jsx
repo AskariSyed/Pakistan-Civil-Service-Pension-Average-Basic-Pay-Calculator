@@ -12,6 +12,8 @@ export default function CalculatorForm({
   setLastBasicPay,
   personalPay,
   setPersonalPay,
+  ppMode = 'fixed',
+  setPpMode,
   retirementDate,
   setRetirementDate,
   errors,
@@ -189,16 +191,53 @@ export default function CalculatorForm({
       <div className="form-group">
         <label className="form-label" htmlFor="personal-pay">
           <span>Personal Pay (PP) If any</span>
-          {isAtCeiling ? (
+          {ppMode === 'fixed' ? (
+            <span style={{ color: 'var(--emerald-500)', fontSize: '0.75rem', fontWeight: 600 }}>
+              Fixed (FR 9(23) Pay Protection)
+            </span>
+          ) : isAtCeiling ? (
             <span style={{ color: 'var(--amber-500)', fontSize: '0.75rem', fontWeight: 600 }}>
               Admissible (At Ceiling)
             </span>
           ) : (
             <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-              Only applicable at ceiling
+              Only at ceiling
             </span>
           )}
         </label>
+
+        {/* PP Mode Switcher */}
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+          <button
+            type="button"
+            className={`preset-chip ${ppMode === 'fixed' ? 'active-chip' : ''}`}
+            onClick={() => setPpMode && setPpMode('fixed')}
+            style={{
+              flex: 1,
+              textAlign: 'center',
+              background: ppMode === 'fixed' ? 'rgba(16, 185, 129, 0.18)' : 'var(--bg-tertiary)',
+              borderColor: ppMode === 'fixed' ? 'var(--emerald-500)' : 'var(--border-subtle)',
+              color: ppMode === 'fixed' ? 'var(--emerald-500)' : 'var(--text-secondary)'
+            }}
+          >
+            Fixed PP (e.g. Rs. 2,000 / Pay Protection)
+          </button>
+          <button
+            type="button"
+            className={`preset-chip ${ppMode === 'ceiling' ? 'active-chip' : ''}`}
+            onClick={() => setPpMode && setPpMode('ceiling')}
+            style={{
+              flex: 1,
+              textAlign: 'center',
+              background: ppMode === 'ceiling' ? 'rgba(16, 185, 129, 0.18)' : 'var(--bg-tertiary)',
+              borderColor: ppMode === 'ceiling' ? 'var(--emerald-500)' : 'var(--border-subtle)',
+              color: ppMode === 'ceiling' ? 'var(--emerald-500)' : 'var(--text-secondary)'
+            }}
+          >
+            Ceiling Increments (Excel Rule)
+          </button>
+        </div>
+
         <div className="input-wrapper">
           <span className="input-currency-badge">PKR</span>
           <input
@@ -208,17 +247,42 @@ export default function CalculatorForm({
             placeholder="0"
             value={personalPay}
             onChange={(e) => setPersonalPay(e.target.value === '' ? 0 : Number(e.target.value))}
-            step={activeScale.increment}
+            step={ppMode === 'fixed' ? 100 : activeScale.increment}
             min={0}
           />
         </div>
         {errors.personalPay && (
           <div className="input-error"><AlertCircle size={14} />{errors.personalPay}</div>
         )}
+
+        {/* Quick buttons for Personal Pay */}
+        <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+          <button
+            type="button"
+            className="preset-chip"
+            onClick={() => {
+              if (setPpMode) setPpMode('fixed');
+              setPersonalPay(2000);
+            }}
+            title="Set Rs. 2,000 Fixed Personal Pay under FR 9(23) Pay Protection"
+          >
+            + Set PKR 2,000
+          </button>
+          <button
+            type="button"
+            className="preset-chip"
+            onClick={() => setPersonalPay(0)}
+          >
+            Clear (0)
+          </button>
+        </div>
+
         <div className="input-hint">
-          {isAtCeiling
-            ? `Granted to employees who reach maximum stage. Must be multiple of Rs. ${activeScale.increment.toLocaleString()}.`
-            : `Personal pay is 0 unless basic pay has reached the scale maximum (Rs. ${activeScale.maximum.toLocaleString()}).`}
+          {ppMode === 'fixed'
+            ? 'Under FR 9(23) & CSR 486, fixed Personal Pay (such as Rs. 2,000/- from pay protection or qualification allowance) is fully counted in pensionable emoluments.'
+            : isAtCeiling
+            ? `Granted to employees at scale ceiling (must be multiple of Rs. ${activeScale.increment.toLocaleString()}).`
+            : `Under Excel ceiling mode, Personal Pay is only allowed once reaching the maximum stage (Rs. ${activeScale.maximum.toLocaleString()}). Switch to "Fixed PP" if you draw pay protection.`}
         </div>
       </div>
 

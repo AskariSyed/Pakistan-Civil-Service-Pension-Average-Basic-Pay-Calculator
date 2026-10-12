@@ -19,6 +19,7 @@ export default function App() {
   const [bps, setBps] = useState(1);
   const [lastBasicPay, setLastBasicPay] = useState(31880);
   const [personalPay, setPersonalPay] = useState(0);
+  const [ppMode, setPpMode] = useState('fixed'); // 'fixed' (e.g. Rs. 2,000 / Pay Protection) | 'ceiling' (Excel stagnation rule)
   const [retirementDate, setRetirementDate] = useState('2026-07-05');
 
   // UI States
@@ -35,16 +36,17 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Perform Real-Time Calculation using exact Excel formulas
+  // Perform Real-Time Calculation
   const result = useMemo(() => {
-    return calculateAverageBasicPay(bps, lastBasicPay, personalPay, retirementDate);
-  }, [bps, lastBasicPay, personalPay, retirementDate]);
+    return calculateAverageBasicPay(bps, lastBasicPay, personalPay, retirementDate, ppMode);
+  }, [bps, lastBasicPay, personalPay, retirementDate, ppMode]);
 
-  const handleApplyPreset = (newBps, newPay, newPP, newDate) => {
+  const handleApplyPreset = (newBps, newPay, newPP, newDate, newPpMode = 'ceiling') => {
     setBps(newBps);
     setLastBasicPay(newPay);
     setPersonalPay(newPP);
     setRetirementDate(newDate);
+    if (newPpMode) setPpMode(newPpMode);
   };
 
   const handlePrint = () => {
@@ -84,6 +86,8 @@ export default function App() {
               setLastBasicPay={setLastBasicPay}
               personalPay={personalPay}
               setPersonalPay={setPersonalPay}
+              ppMode={ppMode}
+              setPpMode={setPpMode}
               retirementDate={retirementDate}
               setRetirementDate={setRetirementDate}
               errors={result.errors || {}}

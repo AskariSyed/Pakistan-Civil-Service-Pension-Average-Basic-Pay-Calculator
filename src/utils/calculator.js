@@ -50,7 +50,7 @@ export function getAvailableBasicPayStages(bps, retirementDateStr) {
 /**
  * Validates the inputs strictly according to the Excel formulas.
  */
-export function validateInputs(bps, lastBasicPay, personalPay, retirementDateStr) {
+export function validateInputs(bps, lastBasicPay, personalPay, retirementDateStr, ppMode = 'fixed') {
   const errors = {};
 
   if (!bps || isNaN(bps) || bps < 1 || bps > 22) {
@@ -93,22 +93,26 @@ export function validateInputs(bps, lastBasicPay, personalPay, retirementDateStr
   const ppNum = personalPay === '' || personalPay === null || personalPay === undefined ? 0 : Number(personalPay);
   if (isNaN(ppNum) || ppNum < 0) {
     errors.personalPay = 'Personal Pay cannot be negative.';
-  } else if (ppNum > 0 && ppNum % scale.increment !== 0) {
-    errors.personalPay = `Personal Pay must be a multiple of annual increment (Rs. ${scale.increment.toLocaleString()}).`;
-  } else if (ppNum > 0 && stage !== scale.stages) {
-    errors.personalPay = `Personal Pay is only admissible when Basic Pay is at the maximum of the scale (Stage ${scale.stages}: Rs. ${scale.maximum.toLocaleString()}).`;
+  } else if (ppMode === 'ceiling') {
+    // Strict Excel formula check for increments beyond ceiling
+    if (ppNum > 0 && ppNum % scale.increment !== 0) {
+      errors.personalPay = `For ceiling increments, Personal Pay must be a multiple of annual increment (Rs. ${scale.increment.toLocaleString()}).`;
+    } else if (ppNum > 0 && stage !== scale.stages) {
+      errors.personalPay = `Ceiling increments are only admissible when Basic Pay is at the maximum of the scale (Stage ${scale.stages}: Rs. ${scale.maximum.toLocaleString()}).`;
+    }
   }
 
   const isValid = Object.keys(errors).length === 0;
-  return { isValid, errors, scale, scaleYear, stage, ppNum, retDate };
+  return { isValid, errors, scale, scaleYear, stage, ppNum, retDate, ppMode };
 }
 
 /**
  * Calculates the exact 24-month breakdown and average basic pay.
  * Follows the EXACT Excel formula from 'Download-Average-Basic-Pay-Finding-Calculator-24-Months.xlsx'
+ * with support for both ceiling increments and fixed Personal Pay (FR 9(23) / Pay Protection).
  */
-export function calculateAverageBasicPay(bps, lastBasicPay, personalPay = 0, retirementDateStr) {
-  const validation = validateInputs(bps, lastBasicPay, personalPay, retirementDateStr);
+export function calculateAverageBasicPay(bps, lastBasicPay, personalPay = 0, retirementDateStr, ppMode = 'fixed') {
+  const validation = validateInputs(bps, lastBasicPay, personalPay, retirementDateStr, ppMode);
   if (!validation.isValid) {
     return {
       isValid: false,
@@ -129,66 +133,107 @@ export function calculateAverageBasicPay(bps, lastBasicPay, personalPay = 0, ret
   const retYear = retDate.getFullYear();
   const retMonth = retDate.getMonth() + 1; // 1-12
 
-  const ppStages = ppNum > 0 ? ppNum / scale.increment : 0;
-  const totalStagesAtRetirement = stage + ppStages;
-
   const months = [];
 
-  for (let e = 1; e <= 24; e++) {
-    // Excel formula: DATE(YEAR($C$5), MONTH($C$5) - 24 + $E, 1)
-    const monthOffset = -24 + e;
-    const totalMonthIndex = retYear * 12 + (retMonth - 1) + monthOffset;
-    const mYear = Math.floor(totalMonthIndex / 12);
-    const mMonth1 = (totalMonthIndex % 12) + 1; // 1-12
-    const mDate = new Date(mYear, mMonth1 - 1, 1);
+  if (ppMode === 'ceiling') {
+    // 1. Strict Excel Formula: PP is treated as increments beyond ceiling
+    const ppStages = ppNum > 0 ? ppNum / scale.increment : 0;
+    const totalStagesAtRetirement = stage + ppStages;
 
-    // Increments deduction between month and retirement:
-    // Excel formula:
-    // YEAR(DATE(YEAR($C$5),MONTH($C$5),1)) - YEAR(F_k) + IF(MONTH($C$5)=12,1,0) - IF(MONTH(F_k)=12,1,0)
-    const incDiff = (retYear - mYear) + (retMonth === 12 ? 1 : 0) - (mMonth1 === 12 ? 1 : 0);
-    const stagesInMonth = totalStagesAtRetirement - incDiff;
+    for (let e = 1; e <= 24; e++) {
+      const monthOffset = -24 + e;
+      const totalMonthIndex = retYear * 12 + (retMonth - 1) + monthOffset;
+      const mYear = Math.floor(totalMonthIndex / 12);
+      const mMonth1 = (totalMonthIndex % 12) + 1;
+      const mDate = new Date(mYear, mMonth1 - 1, 1);
 
-    if (stagesInMonth < 0) {
-      return {
-        isValid: false,
-        errors: { general: 'Calculation resulted in negative pay stage for past months.' },
-        months: [],
-        totalBasic: 0,
-        totalPP: 0,
-        totalSum: 0,
-        avgBasic: 0,
-        avgPP: 0,
-        avgTotal: 0,
-        avgRound: 0
-      };
+      const incDiff = (retYear - mYear) + (retMonth === 12 ? 1 : 0) - (mMonth1 === 12 ? 1 : 0);
+      const stagesInMonth = totalStagesAtRetirement - incDiff;
+
+      if (stagesInMonth < 0) {
+        return {
+          isValid: false,
+          errors: { general: 'Calculation resulted in negative pay stage for past months.' },
+          months: [],
+          totalBasic: 0,
+          totalPP: 0,
+          totalSum: 0,
+          avgBasic: 0,
+          avgPP: 0,
+          avgTotal: 0,
+          avgRound: 0
+        };
+      }
+
+      const mScaleYear = isScale2026(mDate) ? 2026 : 2022;
+      const mScale = mScaleYear === 2026 ? bpsData.scale2026 : bpsData.scale2022;
+
+      const totalPay = mScale.initial + stagesInMonth * mScale.increment;
+      const basicPay = Math.min(totalPay, mScale.maximum);
+      const personalPayMonth = Math.max(totalPay - basicPay, 0);
+
+      const monthName = mDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+      months.push({
+        srNo: e,
+        monthName,
+        monthDate: mDate,
+        scaleYear: mScaleYear,
+        stages: stagesInMonth,
+        basicPay,
+        personalPay: personalPayMonth,
+        totalPay
+      });
     }
+  } else {
+    // 2. Fixed Personal Pay Mode (FR 9(23) / Pay Protection / e.g. Rs. 2,000 monthly)
+    // Under CSR Article 486, Personal Pay is part of emoluments reckonable for pension.
+    for (let e = 1; e <= 24; e++) {
+      const monthOffset = -24 + e;
+      const totalMonthIndex = retYear * 12 + (retMonth - 1) + monthOffset;
+      const mYear = Math.floor(totalMonthIndex / 12);
+      const mMonth1 = (totalMonthIndex % 12) + 1;
+      const mDate = new Date(mYear, mMonth1 - 1, 1);
 
-    // Determine Pay Scale for this past month
-    const mScaleYear = isScale2026(mDate) ? 2026 : 2022;
-    const mScale = mScaleYear === 2026 ? bpsData.scale2026 : bpsData.scale2022;
+      const incDiff = (retYear - mYear) + (retMonth === 12 ? 1 : 0) - (mMonth1 === 12 ? 1 : 0);
+      const stagesInMonth = stage - incDiff;
 
-    // Excel formula:
-    // I_k = INDEX($D$50:$D$93, ...) + stagesInMonth * INDEX($E$50:$E$93, ...)
-    const totalPay = mScale.initial + stagesInMonth * mScale.increment;
+      if (stagesInMonth < 0) {
+        return {
+          isValid: false,
+          errors: { general: 'Calculation resulted in negative pay stage for past months.' },
+          months: [],
+          totalBasic: 0,
+          totalPP: 0,
+          totalSum: 0,
+          avgBasic: 0,
+          avgPP: 0,
+          avgTotal: 0,
+          avgRound: 0
+        };
+      }
 
-    // G_k = MIN(I_k, INDEX($F$50:$F$93, ...))
-    const basicPay = Math.min(totalPay, mScale.maximum);
+      const mScaleYear = isScale2026(mDate) ? 2026 : 2022;
+      const mScale = mScaleYear === 2026 ? bpsData.scale2026 : bpsData.scale2022;
 
-    // H_k = MAX(I_k - G_k, 0)
-    const personalPayMonth = Math.max(totalPay - basicPay, 0);
+      const basicPayCalculated = mScale.initial + stagesInMonth * mScale.increment;
+      const basicPay = Math.min(basicPayCalculated, mScale.maximum);
+      const personalPayMonth = ppNum; // Fixed Personal Pay (e.g. Rs. 2,000)
+      const totalPay = basicPay + personalPayMonth;
 
-    const monthName = mDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const monthName = mDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
-    months.push({
-      srNo: e,
-      monthName,
-      monthDate: mDate,
-      scaleYear: mScaleYear,
-      stages: stagesInMonth,
-      basicPay,
-      personalPay: personalPayMonth,
-      totalPay
-    });
+      months.push({
+        srNo: e,
+        monthName,
+        monthDate: mDate,
+        scaleYear: mScaleYear,
+        stages: stagesInMonth,
+        basicPay,
+        personalPay: personalPayMonth,
+        totalPay
+      });
+    }
   }
 
   const totalBasic = months.reduce((acc, m) => acc + m.basicPay, 0);
