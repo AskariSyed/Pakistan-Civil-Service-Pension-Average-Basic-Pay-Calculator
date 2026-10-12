@@ -107,29 +107,33 @@ $$
 
 ### 5. Full Pension & Commutation Benefit Estimation
 
-**Gross Pension**:
+#### Gross Pension
+
 $$
 \text{Gross Pension} = \frac{ABP \times \text{Service Years (Max 30)} \times 7}{300}
 $$
 
-**Commutation (35%)**:
+#### Commutation (35%)
+
 $$
 \text{Commutation Portion} = \text{Gross Pension} \times 0.35
 $$
 
-**Lump Sum Gratuity**:
+#### Lump Sum Gratuity
+
 $$
 \text{Commutation Lump Sum} = \text{Commutation Portion} \times 12 \times \text{Factor}(\text{Age Next Birthday})
 $$
 
-**Net Monthly Pension**:
+#### Net Monthly Pension
+
 $$
 \text{Net Pension} = \text{Gross Pension} \times 0.65
 $$
 
-**Medical Allowance**:
-- $25\%$ of Net Pension for BPS 1–15
-- $20\%$ of Net Pension for BPS 16–22
+#### Medical Allowance
+- **25%** of Net Pension for BPS 1–15
+- **20%** of Net Pension for BPS 16–22
 
 ---
 
