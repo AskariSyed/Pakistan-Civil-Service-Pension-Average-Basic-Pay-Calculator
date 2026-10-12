@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calculator, Moon, Sun, Table, Printer, Sparkles, BookOpen, ShieldAlert } from 'lucide-react';
+import { Calculator, Moon, Sun, Table, Printer, BookOpen, ShieldAlert } from 'lucide-react';
 
 export default function Header({
   theme,

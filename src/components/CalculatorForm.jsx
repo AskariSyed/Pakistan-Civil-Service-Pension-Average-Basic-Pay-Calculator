@@ -3,7 +3,7 @@ import { PAY_SCALES } from '../data/payScales.js';
 import { getAvailableBasicPayStages, isScale2026 } from '../utils/calculator.js';
 import CustomSelect from './CustomSelect.jsx';
 import CustomDatePicker from './CustomDatePicker.jsx';
-import { Calendar, Hash, Award, AlertCircle, Info, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Hash, Award, AlertCircle, Sparkles } from 'lucide-react';
 
 export default function CalculatorForm({
   bps,

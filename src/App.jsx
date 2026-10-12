@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Header from './components/Header.jsx';
 import CalculatorForm from './components/CalculatorForm.jsx';
 import ResultsSummary from './components/ResultsSummary.jsx';
@@ -19,6 +19,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 export default function App() {
   // Theme state
   const [theme, setTheme] = useState('dark');
+  const rulesRef = useRef(null);
 
   // Input states - initialized with default values from the Excel sheet
   const [bps, setBps] = useState(1);
@@ -30,7 +31,13 @@ export default function App() {
   // UI States
   const [activeTab, setActiveTab] = useState('breakdown'); // 'breakdown' | 'pension'
   const [isPayScaleModalOpen, setIsPayScaleModalOpen] = useState(false);
-  const [isDisclaimerModalOpen, setIsDisclaimerModalOpen] = useState(false);
+  const [isDisclaimerModalOpen, setIsDisclaimerModalOpen] = useState(() => {
+    try {
+      return localStorage.getItem('pension_disclaimer_accepted') !== 'true';
+    } catch (_e) {
+      return false;
+    }
+  });
   const [showRules, setShowRules] = useState(false);
 
   // Apply theme to document
@@ -38,22 +45,12 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  // Check if first-time user has accepted disclaimer
-  useEffect(() => {
-    try {
-      const accepted = localStorage.getItem('pension_disclaimer_accepted');
-      if (accepted !== 'true') {
-        setIsDisclaimerModalOpen(true);
-      }
-    } catch (e) {
-      // LocalStorage not available or blocked
-    }
-  }, []);
-
   const handleAcceptDisclaimer = () => {
     try {
       localStorage.setItem('pension_disclaimer_accepted', 'true');
-    } catch (e) {}
+    } catch (_e) {
+      // LocalStorage blocked or restricted
+    }
     setIsDisclaimerModalOpen(false);
   };
 
@@ -78,6 +75,23 @@ export default function App() {
     window.print();
   };
 
+  const handleToggleRules = () => {
+    if (!showRules) {
+      setShowRules(true);
+      setTimeout(() => {
+        rulesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } else {
+      const rect = rulesRef.current?.getBoundingClientRect();
+      const isInViewport = rect && rect.top >= 0 && rect.top <= window.innerHeight * 0.7;
+      if (isInViewport) {
+        setShowRules(false);
+      } else {
+        rulesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
   return (
     <div className="app-container">
       {/* Screen Interactive UI */}
@@ -91,7 +105,7 @@ export default function App() {
           toggleTheme={toggleTheme}
           onOpenPayScaleModal={() => setIsPayScaleModalOpen(true)}
           onPrint={handlePrint}
-          onToggleRules={() => setShowRules((prev) => !prev)}
+          onToggleRules={handleToggleRules}
           showRules={showRules}
           onOpenDisclaimer={() => setIsDisclaimerModalOpen(true)}
         />
@@ -190,7 +204,9 @@ export default function App() {
             )}
 
             {/* Explanatory Rules Section (collapsible / toggleable) */}
-            {showRules && <RulesExplainer />}
+            <div ref={rulesRef}>
+              {showRules && <RulesExplainer onClose={() => setShowRules(false)} />}
+            </div>
           </section>
         </div>
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, TrendingUp, FileSpreadsheet, Calendar, Layers, Sparkles } from 'lucide-react';
+import { Copy, Check, TrendingUp, FileSpreadsheet, Calendar, Layers } from 'lucide-react';
 
 export default function ResultsSummary({ result }) {
   const [copied, setCopied] = useState(false);
@@ -19,7 +19,6 @@ export default function ResultsSummary({ result }) {
     totalPP,
     totalSum,
     months,
-    bps,
     bpsLabel,
     retirementScaleYear
   } = result;

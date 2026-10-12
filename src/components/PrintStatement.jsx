@@ -6,7 +6,6 @@ export default function PrintStatement({ result, bps, lastBasicPay, personalPay,
 
   const {
     avgRound,
-    avgTotal,
     avgBasic,
     avgPP,
     totalBasic,

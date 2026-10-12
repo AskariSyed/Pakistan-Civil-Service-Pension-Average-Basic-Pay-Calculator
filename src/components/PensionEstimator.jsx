@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { calculatePensionBenefits, COMMUTATION_TABLE } from '../utils/calculator.js';
-import { ShieldCheck, Award, Calculator, Clock, HelpCircle } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 export default function PensionEstimator({ avgBasicPay, bps }) {
   const [serviceYears, setServiceYears] = useState(30);

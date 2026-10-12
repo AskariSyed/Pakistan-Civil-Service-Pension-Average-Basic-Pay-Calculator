@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Sparkles } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { isScale2026 } from '../utils/calculator.js';
 
 const MONTH_NAMES = [
@@ -24,7 +24,7 @@ export default function CustomDatePicker({
     if (parts.length === 3) {
       return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     }
-    return new Date();
+    return new Date(2026, 6, 5);
   }, [value]);
 
   const [viewYear, setViewYear] = useState(parsedDate.getFullYear());

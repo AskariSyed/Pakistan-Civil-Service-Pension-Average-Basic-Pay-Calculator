@@ -1,17 +1,30 @@
 import React from 'react';
-import { Calendar, TrendingUp, Layers, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { Calendar, TrendingUp, Layers, HelpCircle, CheckCircle2, X } from 'lucide-react';
 
-export default function RulesExplainer() {
+export default function RulesExplainer({ onClose }) {
   return (
-    <div className="card" style={{ marginTop: '24px', padding: '24px' }}>
-      <div className="card-header" style={{ marginBottom: '16px' }}>
-        <h3 className="card-title">
-          <HelpCircle className="card-title-icon" size={20} />
-          <span>Understanding the Calculation Formulas & Rules</span>
-        </h3>
-        <span className="meta-badge highlight">
-          Official Government Rules
-        </span>
+    <div id="rules-section" className="card" style={{ marginTop: '24px', padding: '24px', scrollMarginTop: '32px' }}>
+      <div className="card-header" style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h3 className="card-title" style={{ margin: 0 }}>
+            <HelpCircle className="card-title-icon" size={20} />
+            <span>Understanding the Calculation Formulas & Rules</span>
+          </h3>
+          <span className="meta-badge highlight">
+            Official Government Rules
+          </span>
+        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="btn btn-secondary"
+            style={{ padding: '6px 12px', fontSize: '0.82rem', gap: '4px' }}
+            title="Hide Rules Section"
+          >
+            <X size={14} />
+            <span>Hide Rules</span>
+          </button>
+        )}
       </div>
 
       <div className="rules-grid">
